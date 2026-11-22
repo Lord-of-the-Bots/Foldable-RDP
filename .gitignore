@@ -1,0 +1,15 @@
+**/build/
+**/.cxx/
+.gradle/
+.kotlin/
+.idea/
+local.properties
+*.iml
+*.apk
+*.aab
+*.jks
+*.keystore
+.env
+/remoteClientLib/src/main/jniLibs/
+/remoteClientLib/jni/libs/deps/
+/remote-desktop-clients-libs-*.tar.gz

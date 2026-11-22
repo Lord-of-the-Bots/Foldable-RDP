@@ -1,0 +1,65 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -609,11 +609,6 @@
+ 		set (WITH_NEON OFF)
+ 	endif()
+ 
+-	if(ANDROID_ABI STREQUAL arm64-v8a)
+-		# https://github.com/android/ndk/issues/910
+-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=softfp")
+-	endif()
+-
+ 	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+ 		add_definitions(-DNDK_DEBUG=1)
+ 
+--- a/winpr/libwinpr/file/generic.c
++++ b/winpr/libwinpr/file/generic.c
+@@ -926,7 +926,13 @@
+ 	if (isDir)
+ 	{
+ 		pFileSearch->lpPath = _strdup(lpFileName);
+-		pFileSearch->lpPattern = _strdup(".");
++		pFileSearch->lpPattern = _strdup("*");
++		if (!pFileSearch->lpPath || !pFileSearch->lpPattern)
++		{
++			FindClose(pFileSearch);
++			SetLastError(ERROR_NOT_ENOUGH_MEMORY);
++			return INVALID_HANDLE_VALUE;
++		}
+ 	}
+ 	else
+ 	{
+@@ -994,23 +1000,20 @@
+ 		return INVALID_HANDLE_VALUE; /* failed to open directory */
+ 	}
+ 
+-	if (FindNextFileA((HANDLE)pFileSearch, lpFindFileData))
+-	{
+-		if (isDir)
++	/* Android shared storage can omit "." and ".." from readdir. A lookup of
++	 * the directory itself has already succeeded in stat above. */
++	if (isDir)
++	{
++		const char* slash = strrchr(lpFileName, '/');
++		const char* name = slash ? slash + 1 : lpFileName;
++		if (FindDataFromStat(lpFileName, &fileStat, lpFindFileData))
+ 		{
+-			const char* name = strrchr(lpFileName, '/');
+-
+-			if (!name)
+-				name = lpFileName;
+-			else
+-				name++;
+-
+-			pFileSearch->lpPattern[0] = '*';
+ 			sprintf_s(lpFindFileData->cFileName, ARRAYSIZE(lpFindFileData->cFileName), "%s", name);
++			return (HANDLE)pFileSearch;
+ 		}
+-
++	}
++	else if (FindNextFileA((HANDLE)pFileSearch, lpFindFileData))
+ 		return (HANDLE)pFileSearch;
+-	}
+ 
+ 	FindClose(pFileSearch);
+ 	return INVALID_HANDLE_VALUE;

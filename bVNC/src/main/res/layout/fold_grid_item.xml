@@ -1,0 +1,20 @@
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:cardBackgroundColor="@color/fold_surface">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+        <TextView android:id="@+id/grid_item_id" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone"/>
+        <androidx.appcompat.widget.AppCompatImageView android:id="@+id/grid_item_image" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:scaleType="fitCenter"/>
+        <TextView android:id="@+id/grid_item_text" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp" android:paddingVertical="14dp"
+            android:textSize="16sp" android:textColor="@color/fold_text" android:maxLines="2" android:ellipsize="end"/>
+        <LinearLayout android:id="@+id/foldSessionStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="4dp" android:orientation="horizontal" android:visibility="gone">
+            <TextView android:id="@+id/foldSessionBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/fold_session_badge"
+                android:paddingHorizontal="10dp" android:paddingVertical="4dp" android:textColor="@android:color/white"
+                android:text="@string/fold_session_open" android:textStyle="bold" android:textSize="13sp"/>
+            <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
+            <ImageButton android:id="@+id/foldCloseSession" android:layout_width="48dp" android:layout_height="48dp"
+                android:src="@drawable/fold_close" android:tint="@color/fold_text" android:focusable="false"
+                android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/fold_close_session"/>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="clipboard_transfers_note">Ход копирования между телефоном и компьютером.</string>
+    <string name="clipboard_file_replaced">Буфер на компьютере изменился. Компьютер не смог передать предыдущий файл. Скопируйте его ещё раз.</string>
+    <string name="clipboard_transfers">Передача файлов</string>
+    <string name="clipboard_phone">Телефон</string>
+    <string name="clipboard_computer">Компьютер</string>
+    <string name="clipboard_transfer_route">%1$s → %2$s</string>
+    <string name="clipboard_transfer_amount">%1$d%% · %2$s из %3$s</string>
+    <string name="clipboard_read_failed">Windows не передала файл. Скопируйте его ещё раз. Если буфер по-прежнему не отвечает, переподключитесь к этому компьютеру.</string>
+    <string name="clipboard_large_unavailable">Этот ПК не поддерживает передачу через буфер файлов размером от 4 ГиБ. Скопируйте файл через диск Phone.</string>
+    <string name="clipboard_partial_selection">Файловый менеджер передал только часть выбранных файлов. Скопируйте папку целиком или выберите меньше файлов за раз.</string>
+</resources>

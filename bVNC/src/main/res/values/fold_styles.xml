@@ -1,0 +1,46 @@
+<resources>
+    <color name="fold_background">#F2F3F7</color>
+    <color name="fold_surface">#FFFFFF</color>
+    <color name="fold_text">#17191E</color>
+    <color name="fold_accent">#176BE8</color>
+    <style name="FoldTheme" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorPrimary">@color/fold_accent</item>
+        <item name="colorPrimaryVariant">@color/fold_accent</item>
+        <item name="colorSecondary">@color/fold_accent</item>
+        <item name="colorSurface">@color/fold_surface</item>
+        <item name="colorOnSurface">@color/fold_text</item>
+        <item name="android:colorBackground">@color/fold_background</item>
+        <item name="android:windowBackground">@color/fold_background</item>
+        <item name="android:textColorPrimary">@color/fold_text</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="actionBarStyle">@style/FoldActionBar</item>
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.MaterialComponents.MaterialAlertDialog</item>
+    </style>
+    <style name="FoldSessionTheme" parent="FoldTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="FoldActionBar" parent="Widget.MaterialComponents.ActionBar.Solid">
+        <item name="background">@color/fold_background</item>
+        <item name="elevation">0dp</item>
+        <item name="titleTextStyle">@style/FoldTitle</item>
+    </style>
+    <style name="FoldTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/fold_text</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+    <style name="FoldConnectionCard" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/fold_surface</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="contentPadding">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+    <style name="FoldTextField" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+    </style>
+</resources>

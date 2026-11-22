@@ -1,0 +1,12 @@
+<resources>
+    <string name="clipboard_transfers_note">Copy progress between the phone and a computer.</string>
+    <string name="clipboard_file_replaced">The computer’s clipboard changed and it could not supply the previous file. Copy the file again.</string>
+    <string name="clipboard_transfers">File transfers</string>
+    <string name="clipboard_phone">Phone</string>
+    <string name="clipboard_computer">Computer</string>
+    <string name="clipboard_transfer_route">%1$s → %2$s</string>
+    <string name="clipboard_transfer_amount">%1$d%% · %2$s of %3$s</string>
+    <string name="clipboard_read_failed">Windows could not supply the file. Copy it again. If the clipboard still does not respond, reconnect to this computer.</string>
+    <string name="clipboard_large_unavailable">This PC does not support clipboard transfer of files of 4 GiB or larger. Copy this file through the Phone drive.</string>
+    <string name="clipboard_partial_selection">The file manager shared only part of the selection. Copy a folder or select fewer files at a time.</string>
+</resources>

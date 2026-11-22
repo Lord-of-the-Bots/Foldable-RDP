@@ -1,0 +1,73 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="fold_file_progress">File transfer notifications</string>
+  <string name="fold_file_progress_question">Show file transfer progress?</string>
+  <string name="fold_file_progress_explanation">When you copy a file between your phone and a computer, a quiet notification shows the file name, the computer and the progress. You can also copy files with notifications off.</string>
+  <string name="fold_file_progress_later">Later</string>
+  <string name="fold_file_progress_continue">Continue</string>
+  <string name="fold_switch_to_functions">F1–F12 and navigation</string>
+  <string name="fold_switch_to_text">Text input</string>
+  <string name="fold_export_control_profile">Export control profile</string>
+  <string name="fold_profile_save_failed">Couldn’t save the control profile.</string>
+  <string name="fold_reconnecting">Reconnecting… Attempt %1$d of %2$d.</string>
+  <string name="fold_reconnect_failed">Couldn’t connect. Check that your phone can reach the PC over Wi-Fi or VPN.</string>
+  <string name="fold_session_open">Session open</string>
+  <string name="fold_close_session">Close session</string>
+  <string name="fold_close_named_session">Close session with %1$s</string>
+  <string name="fold_phone_drive">Share phone storage with this PC</string>
+  <string name="fold_touchpad_gestures">Tap to click. Hold one finger for a right click. To drag, tap twice and move while holding the second tap. Lift to drop.</string>
+  <string name="fold_rdp_session">Remote desktop session</string>
+  <item name="foldInputSettings" type="id" />
+  <string name="fold_input_settings">Display and controls</string>
+  <string name="fold_screen_profile">Windows scale and key height are saved for screen %1$s, across rotation, split screen and full screen.</string>
+  <string name="fold_windows_scale">Windows scale: %1$d%%</string>
+  <string name="fold_key_height">RDP keyboard key height · %1$d%%</string>
+  <string name="fold_cursor_speed">Cursor speed: %1$d%% of normal</string>
+  <string name="fold_input_settings_note">Changes are saved immediately. Key height is limited by the available space. Cursor speed applies in touchpad mode.</string>
+  <string name="fold_app_name" translatable="false">Foldable RDP</string>
+  <item name="foldDock" type="id" />
+  <item name="foldKeyboard" type="id" />
+  <string name="fold_menu">Session menu</string>
+  <string name="fold_resizing">Adjusting desktop…</string>
+  <string name="fold_keyboard_picker">Keyboard</string>
+  <string name="fold_desktop_keyboard">Desktop keyboard</string>
+  <string name="fold_keyboard_hide">Hide keyboard</string>
+  <string name="fold_resolution_unavailable">A desktop frame with the requested size has not arrived.</string>
+  <string name="fold_resolution_channel_missing">The server has not opened the display resize channel.</string>
+  <string name="fold_resolution_caps_pending">Waiting for the server display resize capabilities.</string>
+  <string name="fold_resolution_send_failed">Unable to send the desktop resize request.</string>
+  <string name="fold_settings">Settings</string>
+  <string name="fold_advanced">Advanced</string>
+  <string name="fold_display_driver_error">Windows ended the session because its remote display driver failed (0x11).</string>
+  <string name="fold_invalid_rdp_settings">The RDP client could not read the connection settings.</string>
+  <string name="fold_certificate_hostname_mismatch">The name on the certificate differs from the address used for this connection.</string>
+  <string name="fold_initial_desktop">Initial desktop %1$d × %2$d.</string>
+  <string name="fold_frame_seen">First frame received.</string>
+  <string name="fold_frame_missing">Closed before the first frame.</string>
+  <string name="fold_last_layout">The client sent a display change to %1$d × %2$d at %3$d%%.</string>
+  <string name="fold_no_layout">No display change was sent during this connection.</string>
+  <string name="fold_expand">Show</string>
+  <string name="fold_collapse">Hide</string>
+  <string name="fold_clipboard">Shared clipboard</string>
+  <string name="fold_clipboard_note">Copy text and files between your phone and PCs. Copy images and formatted text between PCs.</string>
+  <string name="fold_keep_awake">Keep screen awake</string>
+  <string name="fold_keep_awake_note">While connected to a computer</string>
+  <string name="fold_private_previews">Hide desktop previews</string>
+  <string name="fold_advanced_note">Connection defaults and diagnostics</string>
+  <string name="fold_about">About</string>
+  <string name="fold_about_text">Based on aRDP by Iordan Iordanov and contributors. Licensed under GNU GPL v2 or later. Uses FreeRDP under Apache License 2.0.</string>
+  <string name="fold_back_settings">Back to settings</string>
+  <string name="fold_backup">Import and export</string>
+  <string name="fold_diagnostics">Diagnostics</string>
+  <string name="fold_security">Master password</string>
+  <string name="fold_computers">Computers</string>
+  <string name="fold_connection_title">Connection</string>
+  <string name="fold_name">Name (optional)</string>
+  <string name="fold_address">Address</string>
+  <string name="fold_username">Username</string>
+  <string name="fold_password">Password</string>
+  <string name="fold_save">Save</string>
+  <string name="fold_save_password">Save password</string>
+  <string name="fold_address_required">Enter the computer address</string>
+  <string name="fold_port_invalid">Enter a port from 1 to 65535</string>
+</resources>

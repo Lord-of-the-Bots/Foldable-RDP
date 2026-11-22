@@ -1,0 +1,6 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <SwitchPreferenceCompat android:key="foldClipboard" android:title="@string/fold_clipboard" android:summary="@string/fold_clipboard_note" app:iconSpaceReserved="false" app:persistent="false" />
+    <Preference android:key="foldFileProgress" android:title="@string/fold_file_progress" app:iconSpaceReserved="false" />
+    <SwitchPreferenceCompat android:key="keepScreenOn" android:defaultValue="true" android:title="@string/fold_keep_awake" android:summary="@string/fold_keep_awake_note" app:iconSpaceReserved="false" />
+    <Preference android:key="foldExportControlProfile" android:title="@string/fold_export_control_profile" app:iconSpaceReserved="false" />
+</PreferenceScreen>

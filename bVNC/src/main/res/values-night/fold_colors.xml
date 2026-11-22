@@ -1,0 +1,6 @@
+<resources>
+    <color name="fold_background">#101114</color>
+    <color name="fold_surface">#1C1E23</color>
+    <color name="fold_text">#F4F5F7</color>
+    <color name="fold_accent">#6AA5FF</color>
+</resources>

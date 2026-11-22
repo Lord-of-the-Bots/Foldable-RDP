@@ -1,0 +1,54 @@
+apply plugin: 'com.android.application'
+
+android {
+    ndkVersion '27.2.12479018'
+    compileSdkVersion compileApi
+
+    defaultConfig {
+        applicationId 'com.foldable.rdp'
+        targetSdkVersion targetApi
+        minSdkVersion project.getProperties().get("SDK_VERSION")
+        multiDexEnabled true
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            universalApk true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
+        }
+    }
+
+    packaging {
+        jniLibs {
+            excludes += ['**/libspice.so', '**/libgstreamer_android.so']
+        }
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+
+    namespace 'com.iiordanov.freeaRDP'
+    lint {
+        disable 'Instantiatable'
+    }
+}
+
+dependencies {
+    api 'com.android.support:multidex:1.0.3'
+    implementation project(':bVNC')
+    implementation project(':pubkeyGenerator')
+}

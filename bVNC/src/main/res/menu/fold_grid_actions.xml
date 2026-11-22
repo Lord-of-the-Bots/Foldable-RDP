@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/foldSort" android:title="@string/sort_connections" android:icon="@drawable/ic_sort_24" app:iconTint="@color/fold_text" app:showAsAction="ifRoom" />
+    <item android:id="@+id/actionEditDefaultSettings" android:title="@string/fold_settings" android:onClick="editDefaultSettings" app:showAsAction="never" />
+    <item android:id="@+id/actionMasterPassword" android:title="@string/fold_security" android:checkable="true" android:onClick="toggleMasterPassword" app:showAsAction="never" />
+    <item android:id="@+id/actionExportImport" android:title="@string/fold_backup" android:onClick="importExportSettings" app:showAsAction="never" />
+</menu>

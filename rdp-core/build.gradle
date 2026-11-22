@@ -1,0 +1,97 @@
+apply plugin: 'com.android.library'
+
+def upstream = rootProject.file('remoteClientLib/jni/libs/deps/FreeRDP/client/Android/Studio/freeRDPCore/src/main')
+apply from: file('winpr.gradle')
+def generatedJava = layout.buildDirectory.dir('generated/freerdp/java')
+def prepareJava = tasks.register('prepareFreeRdpJava') {
+    inputs.dir(new File(upstream, 'java'))
+    outputs.dir(generatedJava)
+    doLast {
+        copy { from new File(upstream, 'java'); into generatedJava }
+        def bookmark = new File(generatedJava.get().asFile, 'com/freerdp/freerdpcore/domain/BookmarkBase.java')
+        def text = bookmark.getText('UTF-8')
+        if (!text.contains('isGlyphCache()')) {
+            text = text.replace('private boolean desktopComposition;', '''private boolean desktopComposition;
+        private boolean glyphCache;
+        public boolean isGlyphCache() { return glyphCache; }
+        public void setGlyphCache(boolean value) { glyphCache = value; }''')
+            text = text.replace('desktopComposition = parcel.readInt() == 1;', 'desktopComposition = parcel.readInt() == 1; glyphCache = parcel.readInt() == 1;')
+            text = text.replace('out.writeInt(desktopComposition ? 1 : 0);', 'out.writeInt(desktopComposition ? 1 : 0); out.writeInt(glyphCache ? 1 : 0);')
+            bookmark.setText(text, 'UTF-8')
+        }
+        def global = new File(generatedJava.get().asFile, 'com/freerdp/freerdpcore/application/GlobalApp.java')
+        bookmark.setText(bookmark.getText('UTF-8').replace('private boolean redirectSDCard;', '''private boolean redirectSDCard;
+        private boolean phoneDrive;
+        public boolean isPhoneDrive() { return phoneDrive; }
+        public void setPhoneDrive(boolean value) { phoneDrive = value; }''')
+                .replace('redirectSDCard = parcel.readInt() == 1;', 'redirectSDCard = parcel.readInt() == 1; phoneDrive = parcel.readInt() == 1;')
+                .replace('out.writeInt(redirectSDCard ? 1 : 0);', 'out.writeInt(redirectSDCard ? 1 : 0); out.writeInt(phoneDrive ? 1 : 0);'), 'UTF-8')
+        global.setText(global.getText('UTF-8').replace('private static Map<Long, SessionState> sessionMap;',
+                '''private static final Map<Long, SessionState> sessionMap = new java.util.concurrent.ConcurrentHashMap<>();
+    public static void forgetSession(long instance) { sessionMap.remove(instance); }
+    public static LibFreeRDP.EventListener eventsFor(long instance, LibFreeRDP.EventListener fallback) {
+        SessionState s = getSession(instance);
+        if (s == null) return null;
+        if (s.getUIEventListener() instanceof LibFreeRDP.EventListener)
+            return (LibFreeRDP.EventListener) s.getUIEventListener();
+        return fallback;
+    }''')
+                .replace('sessionMap = Collections.synchronizedMap(new HashMap<Long, SessionState>());', '')
+                .replace('if (GlobalApp.sessionMap.containsKey(instance))', 'if (GlobalApp.sessionMap.remove(instance) != null)')
+                .replace('GlobalApp.sessionMap.remove(instance);', ''), 'UTF-8')
+        def library = new File(generatedJava.get().asFile, 'com/freerdp/freerdpcore/services/LibFreeRDP.java')
+        def source = library.getText('UTF-8').replace('addFlag("glyph-cache", false)', 'addFlag("glyph-cache", flags.isGlyphCache())')
+        source = source.replace('"/log-level:DEBUG"', '"/log-level:" + debug.getDebugLevel()')
+                .replace('String.format("/size:', 'String.format(java.util.Locale.ROOT, "/size:')
+                .replace('String.format("/g:', 'String.format(java.util.Locale.ROOT, "/g:')
+                .replace('"/gt:,no-websockets"', '"/gt:auto,no-websockets"')
+                .replace('"/sec-nla"', '"/sec:nla"').replace('"/sec:nla /sec:ext"', '"/sec:nla"')
+                .replace('"/sec-tls"', '"/sec:tls"').replace('"/sec-rdp"', '"/sec:rdp"')
+        source = source.replace('if (advanced.getRedirectSDCard())', '''if (advanced.isPhoneDrive() && android.os.Build.VERSION.SDK_INT >= 30 &&
+                android.os.Environment.isExternalStorageManager()) {
+            args.add("/drive:Phone," + android.os.Environment.getExternalStorageDirectory().getAbsolutePath());
+        }
+        if (advanced.getRedirectSDCard())''')
+        // The upstream client dispatches drawing and authentication by instance, but lifecycle events globally.
+        for (def event : ['OnPreConnect', 'OnConnectionSuccess', 'OnConnectionFailure', 'OnDisconnecting', 'OnDisconnected']) {
+            def entry = "private static void ${event}(long inst)"
+            source = source.replaceFirst(java.util.regex.Pattern.quote(entry) + '\\s*\\{',
+                    java.util.regex.Matcher.quoteReplacement(entry + ''' {
+        EventListener listener = GlobalApp.eventsFor(inst, LibFreeRDP.listener);'''))
+        }
+        // Release superseded transports after the final callback clears the native connection flag.
+        source = source.replace('public static void freeInstance(long inst)', '''private static final java.util.Set<Long> pendingRelease =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<Long, Boolean>());
+        public static void releaseAfterDisconnect(long inst) { pendingRelease.add(inst); }
+        public static void stopStartedInstance(long inst) { freerdp_disconnect(inst); }
+        public static void freeInstance(long inst)''')
+                .replace('mInstanceState.remove(inst);', '''mInstanceState.remove(inst);
+            if (pendingRelease.remove(inst)) freerdp_free(inst);''')
+        library.setText(source, 'UTF-8')
+    }
+}
+
+android {
+    namespace 'com.freerdp.freerdpcore'
+    compileSdkVersion rootProject.ext.compileApi
+    defaultConfig {
+        minSdkVersion rootProject.ext.minApi
+        targetSdkVersion rootProject.ext.targetApi
+    }
+    sourceSets.main {
+        manifest.srcFile new File(upstream, 'AndroidManifest.xml')
+        java.srcDirs = [generatedJava]
+        res.srcDirs = [new File(upstream, 'res')]
+        assets.srcDirs = [new File(upstream, 'assets')]
+        jniLibs.srcDirs = [layout.buildDirectory.dir('phone-jni')]
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+}
+tasks.named('preBuild').configure { dependsOn prepareJava, 'stagePhoneJni' }
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+}
