@@ -139,7 +139,7 @@ public class AdvancedSettingsActivity extends FragmentActivity implements Manage
 
         Spinner spinnerInputMethod = findViewById(R.id.spinnerInputMethod);
         Utils.selectSpinnerByValue(this, spinnerInputMethod, R.array.defaultInputMethodValues,
-                currentConnection.getInputMode());
+                com.iiordanov.bVNC.DesktopControlProfile.supportedInputMode(this, currentConnection.getInputMode()));
         spinnerInputMethod.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

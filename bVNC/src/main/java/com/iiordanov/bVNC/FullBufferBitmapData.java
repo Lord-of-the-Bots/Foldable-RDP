@@ -206,9 +206,7 @@ class FullBufferBitmapData extends AbstractBitmapData {
                     if (drawing) {
                         canvas.drawBitmap(data.bitmapPixels, offset(xo, yo), data.framebufferwidth,
                                 xo, yo, drawWidth, drawHeight, false, _defaultPaint);
-                        if (softCursor != null && !softCursor.isRecycled()) {
-                            canvas.drawBitmap(softCursor, cursorRect.left, cursorRect.top, _defaultPaint);
-                        }
+                        drawSoftCursor(canvas);
                     }
                 }
             } catch (Throwable e) {

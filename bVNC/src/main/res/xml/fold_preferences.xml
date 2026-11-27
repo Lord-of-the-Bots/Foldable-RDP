@@ -3,4 +3,12 @@
     <Preference android:key="foldFileProgress" android:title="@string/fold_file_progress" app:iconSpaceReserved="false" />
     <SwitchPreferenceCompat android:key="keepScreenOn" android:defaultValue="true" android:title="@string/fold_keep_awake" android:summary="@string/fold_keep_awake_note" app:iconSpaceReserved="false" />
     <Preference android:key="foldExportControlProfile" android:title="@string/fold_export_control_profile" app:iconSpaceReserved="false" />
+    <PreferenceCategory android:title="@string/fold_idle_title" app:iconSpaceReserved="false">
+        <ListPreference android:key="foldIdleWifi" android:title="Wi-Fi" android:defaultValue="0"
+            android:entries="@array/fold_idle_choices" android:entryValues="@array/fold_idle_minutes"
+            app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
+        <ListPreference android:key="foldIdleMobile" android:title="@string/fold_idle_mobile" android:defaultValue="0"
+            android:entries="@array/fold_idle_choices" android:entryValues="@array/fold_idle_minutes"
+            app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
+    </PreferenceCategory>
 </PreferenceScreen>

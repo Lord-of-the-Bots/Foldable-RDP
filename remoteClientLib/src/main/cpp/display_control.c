@@ -9,6 +9,7 @@
 #include <freerdp/settings.h>
 #include <freerdp/event.h>
 #include <freerdp/client/disp.h>
+#include <freerdp/client/rdpei.h>
 #include <freerdp/gdi/gdi.h>
 #include <freerdp/update.h>
 #include "clipboard_channel.h"
@@ -19,6 +20,7 @@ typedef struct DisplayState {
     pPostConnect post_connect;
     pDesktopResize desktop_resize;
     _Atomic(DispClientContext*) display;
+    RdpeiClientContext* touch;
     pthread_mutex_t lock;
     unsigned users;
     BOOL retiring;
@@ -145,6 +147,12 @@ static UINT display_caps(DispClientContext* display, UINT32 monitors, UINT32 a, 
 
 static void channel_connected(void* context, ChannelConnectedEventArgs* event) {
     if (!context || !event || !event->name || !event->pInterface) return;
+    if (strcmp(event->name, RDPEI_DVC_CHANNEL_NAME) == 0) {
+        DisplayState* state = acquire_state(((rdpContext*)context)->instance, NULL);
+        if (state) state->touch = event->pInterface;
+        release_state(state);
+        return;
+    }
     if (strcmp(event->name, DISP_DVC_CHANNEL_NAME) != 0) return;
     DisplayState* state = acquire_state(((rdpContext*)context)->instance, NULL);
     if (state && state->display != event->pInterface) {
@@ -160,6 +168,12 @@ static void channel_connected(void* context, ChannelConnectedEventArgs* event) {
 
 static void channel_disconnected(void* context, ChannelDisconnectedEventArgs* event) {
     if (!context || !event || !event->name) return;
+    if (strcmp(event->name, RDPEI_DVC_CHANNEL_NAME) == 0) {
+        DisplayState* state = acquire_state(((rdpContext*)context)->instance, NULL);
+        if (state && (!event->pInterface || state->touch == event->pInterface)) state->touch = NULL;
+        release_state(state);
+        return;
+    }
     if (strcmp(event->name, DISP_DVC_CHANNEL_NAME) != 0) return;
     DisplayState* state = acquire_state(((rdpContext*)context)->instance, NULL);
     if (state && (!event->pInterface || state->display == event->pInterface)) {
@@ -177,6 +191,7 @@ static BOOL pre_connect(freerdp* instance) {
     BOOL subscribed = state && state->subscribed;
     release_state(state);
     if (!original) return FALSE;
+    freerdp_settings_set_bool(instance->settings, FreeRDP_MultiTouchInput, TRUE);
     if (!freerdp_settings_set_bool(instance->settings, FreeRDP_SupportDisplayControl, TRUE) ||
         !freerdp_settings_set_bool(instance->settings, FreeRDP_DynamicResolutionUpdate, TRUE)) return FALSE;
     if (subscribed) return original(instance);
@@ -259,6 +274,35 @@ Java_com_undatech_opaque_RdpDisplayControl_hasHorizontalWheel(JNIEnv* env, jclas
     BOOL enabled = state && state->instance->settings->HasHorizontalWheel;
     release_state(state);
     return enabled ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_undatech_opaque_RdpDisplayControl_touch(JNIEnv* env, jclass cls, jlong handle, jint action,
+                                                 jint id, jint x, jint y) {
+    DisplayState* state = acquire_state((freerdp*)(uintptr_t)handle, NULL);
+    RdpeiClientContext* touch = state ? state->touch : NULL;
+    INT32 slot = -1;
+    UINT error = ERROR_NOT_SUPPORTED;
+    if (touch) {
+        switch (action) {
+            case 0: error = touch->TouchBegin(touch, id, x, y, &slot); break;
+            case 1: error = touch->TouchEnd(touch, id, x, y, &slot); break;
+            case 2: error = touch->TouchUpdate(touch, id, x, y, &slot); break;
+            case 3:
+                error = touch->TouchUpdate(touch, id, x, y, &slot);
+                if (!error && slot >= 0) {
+                    RDPINPUT_CONTACT_DATA contact = {0};
+                    contact.contactId = (UINT32)slot;
+                    contact.x = x;
+                    contact.y = y;
+                    contact.contactFlags = CONTACT_FLAG_UP | CONTACT_FLAG_CANCELED;
+                    error = touch->AddContact(touch, &contact);
+                }
+                break;
+        }
+    }
+    release_state(state);
+    return !error && slot >= 0 ? JNI_TRUE : JNI_FALSE;
 }
 
 /* Called synchronously from the native connection thread, before detaching the handle. */

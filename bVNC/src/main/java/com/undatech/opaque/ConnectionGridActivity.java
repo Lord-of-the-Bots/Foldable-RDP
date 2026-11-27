@@ -820,6 +820,10 @@ public class ConnectionGridActivity extends AppCompatActivity implements GetText
         startUriIntent(this, "market://search?q=pub:\"Iordan Iordanov (Undatech)\"");
     }
 
+    public void openFoldReleases(MenuItem item) {
+        startUriIntent(this, "https://github.com/Lord-of-the-Bots/Foldable-RDP/releases/latest");
+    }
+
     public void previousVersions(View item) {
         startUriIntent(this, "https://github.com/iiordanov/remote-desktop-clients/releases");
     }

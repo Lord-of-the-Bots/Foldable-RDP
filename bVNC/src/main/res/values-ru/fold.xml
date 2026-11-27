@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="fold_updates">Обновления на GitHub</string>
   <string name="fold_file_progress">Уведомления о копировании</string>
   <string name="fold_file_progress_question">Показывать ход копирования?</string>
   <string name="fold_file_progress_explanation">Когда вы передаёте файл между телефоном и компьютером, в шторке видны имя файла, компьютер и процент. Файлы можно копировать и с выключенными уведомлениями.</string>
@@ -18,9 +19,14 @@
   <string name="fold_touchpad_gestures">Касание — левый клик. Удержание одним пальцем — правый клик. Для перетаскивания коснитесь дважды и ведите палец после второго касания. Отпустите палец, чтобы отпустить кнопку.</string>
   <string name="fold_rdp_session">Сеанс удалённого рабочего стола</string>
   <string name="fold_input_settings">Экран и управление</string>
-  <string name="fold_screen_profile">Масштаб Windows и высота клавиш сохраняются для экрана %1$s — при повороте, в многооконном и полноэкранном режимах.</string>
+  <string name="fold_this_computer">Этот компьютер</string>
+  <string name="fold_all_computers">Все компьютеры</string>
+  <string name="fold_mode_touchpad">Тачпад</string>
+  <string name="fold_mode_touch">Сенсорное управление</string>
+  <string name="fold_right_click_haptic">Виброотклик при правом клике</string>
+  <string name="fold_screen_profile">Экран %1$s</string>
   <string name="fold_windows_scale">Масштаб Windows: %1$d%%</string>
-  <string name="fold_key_height">Высота клавиш RDP-клавиатуры · %1$d%%</string>
+  <string name="fold_key_height">Высота функциональных клавиш · %1$d%%</string>
   <string name="fold_cursor_speed">Скорость курсора: %1$d%% от обычной</string>
   <string name="fold_input_settings_note">Изменения сохраняются сразу. Высота клавиш ограничена свободным местом. Скорость курсора действует в режиме тачпада.</string>
   <string name="fold_menu">Меню сеанса</string>
@@ -66,4 +72,10 @@
   <string name="fold_save_password">Сохранить пароль</string>
   <string name="fold_address_required">Укажите адрес компьютера</string>
   <string name="fold_port_invalid">Укажите порт от 1 до 65535</string>
+  <string name="fold_idle_title">Отключать сеансы после сворачивания</string>
+  <string name="fold_idle_mobile">Мобильная сеть</string>
+  <string-array name="fold_idle_choices">
+    <item>Без ограничения</item><item>1 минута</item><item>5 минут</item><item>15 минут</item>
+    <item>30 минут</item><item>1 час</item><item>4 часа</item><item>24 часа</item>
+  </string-array>
 </resources>

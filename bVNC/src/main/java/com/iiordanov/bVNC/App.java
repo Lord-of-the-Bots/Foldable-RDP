@@ -43,6 +43,7 @@ public class App extends MultiDexApplication {
             if (!prefs.contains("localToRemoteClipboardIntegration")) defaults.putBoolean("localToRemoteClipboardIntegration", true);
             if (!prefs.contains("remoteToLocalClipboardIntegration")) defaults.putBoolean("remoteToLocalClipboardIntegration", true);
             defaults.apply();
+            BackgroundDisconnect.install(this);
         }
         Constants.DEFAULT_PROTOCOL_PORT = Utils.getDefaultPort(this);
         database = new Database(this);

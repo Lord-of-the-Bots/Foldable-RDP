@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="defaultInputMethodValues">
+        <item>TOUCHPAD_MODE</item>
+        <item>TOUCH_ZOOM_MODE</item>
+    </string-array>
+    <string-array name="defaultInputMethodEntries">
+        <item>@string/fold_mode_touchpad</item>
+        <item>@string/fold_mode_touch</item>
+    </string-array>
+</resources>

@@ -40,7 +40,7 @@ public final class DesktopDock extends LinearLayout {
             setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
             addButton(R.drawable.fold_computers, R.string.fold_computers, computers);
         }
-        addButton(R.drawable.fold_menu, R.string.fold_menu, menu);
+        addButton(R.drawable.fold_menu, computers != null ? R.string.fold_input_settings : R.string.fold_menu, menu);
         addButton(R.drawable.fold_keyboard, R.string.fold_keyboard_picker, keyboard);
         setLayoutParams(new FrameLayout.LayoutParams(-2, -2, Gravity.TOP | Gravity.LEFT));
     }

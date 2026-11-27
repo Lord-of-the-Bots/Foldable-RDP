@@ -146,6 +146,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
 
     final long hideToolbarDelay = 2500;
     TouchInputHandler touchInputHandler;
+    private final DesktopTouchContacts directContacts = new DesktopTouchContacts();
     Panner panner;
     Handler handler;
     ViewPager extraKeysToolbar;
@@ -410,6 +411,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
+        if (!hasFocus) directContacts.cancel();
         Log.d(TAG, "onWindowFocusChanged: " + hasFocus);
         if (canvas != null) canvas.setForegrounded(hasFocus);
         if (remoteConnection != null && remoteConnection.getRfbConn() instanceof com.undatech.opaque.RdpCommunicator rdp) {
@@ -1223,13 +1225,15 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
     }
 
     private void showDesktopMenu(View anchor) {
+        if (Utils.isFoldable(this)) {
+            showDesktopInputSettings();
+            return;
+        }
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.getMenu().add(0, R.id.foldInputSettings, 0, R.string.fold_input_settings);
         onCreateOptionsMenu(popup.getMenu());
-        if (Utils.isFoldable(this) && DesktopSessions.isOpen(connection.getId()))
-            popup.getMenu().findItem(R.id.itemDisconnect).setVisible(false);
         for (int id : new int[]{R.id.moveToolbar, R.id.extraKeysToggle, R.id.actionShowKeyboard,
-                R.id.actionScrollWheel, R.id.itemExtraKeys, R.id.itemScaling, R.id.itemEnterText,
+                R.id.actionScrollWheel, R.id.itemInputMode, R.id.itemExtraKeys, R.id.itemScaling, R.id.itemEnterText,
                 R.id.itemColorMode, R.id.itemCenterMouse, R.id.itemInfo, R.id.itemHelpInputMode,
                 R.id.itemSendKeyAgain, R.id.itemSpecialKeys, R.id.itemCtrlAltDel}) popup.getMenu().findItem(id).setVisible(false);
         popup.setOnMenuItemClickListener(item -> {
@@ -1297,8 +1301,30 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
         LinearLayout panel = new LinearLayout(this); panel.setOrientation(LinearLayout.VERTICAL);
         int padding = Math.round(20 * getResources().getDisplayMetrics().density);
         panel.setPadding(padding, padding, padding, padding);
+        addSettingsHeading(panel, getString(R.string.fold_this_computer));
+        android.widget.RadioGroup modes = new android.widget.RadioGroup(this);
+        for (int id : new int[]{R.id.itemInputTouchpad, R.id.itemInputTouchPanZoomMouse}) {
+            android.widget.RadioButton button = new android.widget.RadioButton(this);
+            button.setId(id);
+            button.setText(id == R.id.itemInputTouchpad ? R.string.fold_mode_touchpad : R.string.fold_mode_touch);
+            button.setMinHeight(Math.round(48 * getResources().getDisplayMetrics().density));
+            modes.addView(button);
+        }
+        panel.addView(modes);
+        boolean touchpad = touchInputHandler instanceof TouchInputHandlerTouchpad;
+        modes.check(touchpad ? R.id.itemInputTouchpad : R.id.itemInputTouchPanZoomMouse);
+
+        addSettingsHeading(panel, getString(R.string.fold_all_computers));
+        androidx.appcompat.widget.SwitchCompat haptic = new androidx.appcompat.widget.SwitchCompat(this);
+        haptic.setText(R.string.fold_right_click_haptic);
+        haptic.setMinHeight(Math.round(48 * getResources().getDisplayMetrics().density));
+        haptic.setChecked(DesktopControlProfile.rightClickHaptic(this));
+        haptic.setOnCheckedChangeListener((button, enabled) -> getSharedPreferences("desktop_keyboard", MODE_PRIVATE)
+                .edit().putBoolean(DesktopControlProfile.RIGHT_CLICK_HAPTIC, enabled).apply());
+        haptic.setVisibility(touchpad ? View.VISIBLE : View.GONE);
+        panel.addView(haptic);
         TextView screen = new TextView(this);
-        screen.setText(getString(R.string.fold_screen_profile, desktopProfile.replace('x', '×')));
+        screen.setText(getString(R.string.fold_screen_profile, currentDesktopProfile().replace('x', '×')));
         panel.addView(screen);
         addDesktopSlider(panel, 8, (desktopScalePercent - 100) / 25,
                 value -> getString(R.string.fold_windows_scale, 100 + value * 25),
@@ -1309,9 +1335,19 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
                 value -> desktopKeyboard.setRowHeightDp(Math.round(DesktopKeyboardView.BASE_ROW_HEIGHT_DP * (value + 70) / 100f)));
         int speed = Utils.isFoldable(this) ? DesktopControlProfile.cursorSpeedStep(this, currentDesktopProfile())
                 : com.iiordanov.bVNC.input.RemoteRdpPointer.savedSpeedStep(this);
-        addDesktopSlider(panel, 11, speed,
+        LinearLayout padSettings = new LinearLayout(this);
+        padSettings.setOrientation(LinearLayout.VERTICAL);
+        panel.addView(padSettings);
+        addDesktopSlider(padSettings, 11, speed,
                 value -> getString(R.string.fold_cursor_speed, (value + 1) * 20), this::setDesktopCursorSpeed);
-        TextView note = new TextView(this); note.setText(R.string.fold_input_settings_note); panel.addView(note);
+        padSettings.setVisibility(touchpad ? View.VISIBLE : View.GONE);
+        modes.setOnCheckedChangeListener((group, id) -> {
+            if (setInputMode(id)) {
+                int visibility = id == R.id.itemInputTouchpad ? View.VISIBLE : View.GONE;
+                padSettings.setVisibility(visibility);
+                haptic.setVisibility(visibility);
+            }
+        });
         ScrollView scroll = new ScrollView(this); scroll.addView(panel);
         AlertDialog dialog = new AlertDialog.Builder(this).setTitle(R.string.fold_input_settings).setView(scroll)
                 .setPositiveButton(android.R.string.ok, null).create();
@@ -1324,6 +1360,17 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
         desktopTransientWindows++;
         dialog.show();
         if (dialog.getWindow() != null) dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+    }
+
+    private void addSettingsHeading(LinearLayout panel, String title) {
+        TextView heading = new TextView(this);
+        heading.setText(title);
+        heading.setTypeface(null, android.graphics.Typeface.BOLD);
+        heading.setTextSize(17);
+        int gap = Math.round(8 * getResources().getDisplayMetrics().density);
+        heading.setPadding(0, panel.getChildCount() == 0 ? 0 : 2 * gap, 0, gap);
+        ViewCompat.setAccessibilityHeading(heading, true);
+        panel.addView(heading);
     }
 
     static int savedKeyboardMode(SharedPreferences preferences) {
@@ -1541,6 +1588,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
 
     @Override
     protected void onPause() {
+        directContacts.cancel();
         DesktopWorkspace.paused(this);
         if (desktopKeyboard != null) desktopKeyboard.releaseKeys();
         if (desktopDock != null && remoteConnection != null && remoteConnection.getKeyboard() instanceof com.iiordanov.bVNC.input.RemoteRdpKeyboard)
@@ -1766,6 +1814,12 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
             getMenuInflater().inflate(R.menu.canvasactivitymenu, menu);
 
             Menu inputMenu = menu.findItem(R.id.itemInputMode).getSubMenu();
+            if (Utils.isFoldable(this) && inputMenu != null) {
+                inputMenu.findItem(R.id.itemInputDragPanZoomMouse).setVisible(false);
+                inputMenu.findItem(R.id.itemInputSingleHanded).setVisible(false);
+                inputMenu.findItem(R.id.itemInputTouchpad).setTitle(R.string.fold_mode_touchpad);
+                inputMenu.findItem(R.id.itemInputTouchPanZoomMouse).setTitle(R.string.fold_mode_touch);
+            }
             inputModeMenuItems = new MenuItem[inputModeIds.length];
             for (int i = 0; i < inputModeIds.length; i++) {
                 if (inputMenu != null) {
@@ -1890,6 +1944,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
     }
 
     TouchInputHandler getInputHandlerByName(String name) {
+        name = DesktopControlProfile.supportedInputMode(this, name);
         TouchInputHandler result = null;
         for (int id : inputModeIds) {
             TouchInputHandler handler = getInputHandlerById(id);
@@ -2004,7 +2059,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
                 remoteConnection.getPointer().setRelativeEvents(false);
             }
 
-            showPanningState(true);
+            if (!Utils.isFoldable(this)) showPanningState(true);
             connection.save(this);
             if (recordedDesktopSession) rememberDesktopOptions();
             return true;
@@ -2013,6 +2068,10 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
     }
 
     private void setInputHandler(TouchInputHandler input) {
+        if (input != touchInputHandler) {
+            directContacts.cancel();
+            canvas.hideCursorForTouch(false);
+        }
         touchInputHandler = input;
         inputListener = new RemoteClientsInputListener(
                 this,
@@ -2107,6 +2166,7 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
     }
 
     @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        if (canvas != null && event.isFromSource(android.view.InputDevice.SOURCE_MOUSE)) canvas.hideCursorForTouch(false);
         return isControllerMotion(event) || super.dispatchGenericMotionEvent(event);
     }
 
@@ -2120,6 +2180,12 @@ public class RemoteCanvasActivity extends AppCompatActivity implements
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (desktopDock != null && touchInputHandler instanceof TouchInputHandlerDirectSwipePan
+                && remoteConnection != null && remoteConnection.getRfbConn() instanceof com.undatech.opaque.RdpCommunicator rdp) {
+            boolean handled = directContacts.handle(event, rdp::sendTouchContact, canvas, xPointerOffset, yPointerOffset);
+            if (event.getActionMasked() == MotionEvent.ACTION_DOWN) canvas.hideCursorForTouch(handled);
+            if (handled) return true;
+        }
         if (desktopDock != null && handleDesktopGesture(event)) return true;
         boolean consumed = false;
         if (inputListener != null) {

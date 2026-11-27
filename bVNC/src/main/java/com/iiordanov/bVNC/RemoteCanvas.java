@@ -60,6 +60,14 @@ import com.undatech.opaque.input.RemotePointer;
 import com.undatech.remoteClientUi.R;
 
 public class RemoteCanvas extends AppCompatImageView implements Viewable {
+    boolean nativeTouchCursorHidden;
+
+    void hideCursorForTouch(boolean hidden) {
+        if (nativeTouchCursorHidden != hidden) {
+            nativeTouchCursorHidden = hidden;
+            invalidate();
+        }
+    }
     private final static String TAG = "RemoteCanvas";
 
     public AbstractScaling canvasZoomer;

@@ -9,6 +9,7 @@ final class RdpDisplayControl {
     static native int status(long instance);
     static native long lastSentLayout(long instance);
     static native boolean hasHorizontalWheel(long instance);
+    static native boolean touch(long instance, int action, int id, int x, int y);
     static final int NETWORK_FAILURE = 1;
     static final int CREDENTIALS_REQUIRED = 2;
     static final int DISPLAY_DRIVER_FAILURE = 3;

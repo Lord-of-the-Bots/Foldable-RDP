@@ -14,6 +14,20 @@ import java.util.TreeSet;
 public final class DesktopControlProfile {
     private DesktopControlProfile() {}
 
+    static final String RIGHT_CLICK_HAPTIC = "touchpadRightClickHaptic";
+
+    public static boolean rightClickHaptic(Context context) {
+        return context.getSharedPreferences("desktop_keyboard", Context.MODE_PRIVATE)
+                .getBoolean(RIGHT_CLICK_HAPTIC, true);
+    }
+
+    public static String supportedInputMode(Context context, String saved) {
+        if (!Utils.isFoldable(context)) return saved;
+        if (saved == null || saved.isEmpty() || com.iiordanov.bVNC.input.TouchInputHandlerTouchpad.ID.equals(saved))
+            return com.iiordanov.bVNC.input.TouchInputHandlerTouchpad.ID;
+        return com.iiordanov.bVNC.input.TouchInputHandlerDirectSwipePan.ID;
+    }
+
     static String displayKey(Context context, View view, String fallback) {
         android.view.Display display = view == null ? null : view.getDisplay();
         if (display == null) {
@@ -89,9 +103,10 @@ public final class DesktopControlProfile {
         return new JSONObject().put("formatVersion", 1).put("displays", screens)
                 .put("keyboardMode", mode == RemoteCanvasActivity.FUNCTION_KEYS ? "functionKeys" : "system")
                 .put("systemKeyStripPercent", 70)
+                .put("touchpadRightClickHaptic", rightClickHaptic(context))
                 .put("touchpadSpeedPercent", 20 * (RemoteRdpPointer.savedSpeedStep(context) + 1))
-                .put("inputMode", session.getString(ConnectionBean.GEN_FIELD_INPUTMODE,
-                        ConnectionBean.getDefaultInputMode(context)))
+                .put("inputMode", supportedInputMode(context, session.getString(ConnectionBean.GEN_FIELD_INPUTMODE,
+                        ConnectionBean.getDefaultInputMode(context))))
                 .toString(2);
     }
 }

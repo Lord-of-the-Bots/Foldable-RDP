@@ -121,7 +121,8 @@ public abstract class MainConfiguration extends AppCompatActivity {
         checkboxUseDpadAsArrows.setChecked(selected.getUseDpadAsArrows());
         checkboxRotateDpad.setChecked(selected.getRotateDpad());
         checkboxUseLastPositionToolbar.setChecked(selected.getUseLastPositionToolbar());
-        Utils.selectSpinnerByValue(this, spinnerInputMethod, R.array.defaultInputMethodValues, selected.getInputMode());
+        Utils.selectSpinnerByValue(this, spinnerInputMethod, R.array.defaultInputMethodValues,
+                DesktopControlProfile.supportedInputMode(this, selected.getInputMode()));
         Utils.selectSpinnerByValue(this, spinnerScaling, R.array.defaultScalingValues, selected.getScaleModeAsString());
         if (selected.getUseLocalCursor() == Constants.CURSOR_AUTO) {
             radioCursor.check(R.id.radioCursorAuto);

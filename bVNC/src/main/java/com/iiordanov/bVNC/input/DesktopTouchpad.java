@@ -37,9 +37,12 @@ public final class DesktopTouchpad extends TouchInputHandlerTouchpad {
         if (dragMode || secondPointerWasDown || thirdPointerWasDown) return;
         var pointer = remoteInput.getPointer();
         int x = pointer.getX(), y = pointer.getY();
-        touchInputDelegate.sendShortVibration();
         pointer.rightButtonDown(x, y, event.getMetaState());
         pointer.releaseButton(x, y, event.getMetaState());
+        if (viewable instanceof android.view.View view
+                && com.iiordanov.bVNC.DesktopControlProfile.rightClickHaptic(view.getContext())) {
+            view.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
+        }
     }
 
     @Override public boolean onDoubleTap(MotionEvent firstTap) {

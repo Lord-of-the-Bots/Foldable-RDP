@@ -25,6 +25,7 @@ import java.util.Map;
 public final class DesktopWorkspace {
     private static final String OPEN_TASKS = "com.foldable.rdp.OPEN_DESKTOP_TASKS";
     private static final String SAVED_PROFILES = "com.foldable.rdp.OPEN_PROFILES";
+    private static final String SAVED_GENERATION = "com.foldable.rdp.WORKSPACE_GENERATION";
     public static final String UNLOCK = "com.foldable.rdp.UNLOCK_WORKSPACE";
     private static final int NONE = -1;
     private static final LinkedHashMap<Integer, Long> desktops = new LinkedHashMap<>();
@@ -107,6 +108,7 @@ public final class DesktopWorkspace {
     }
 
     static boolean openFromLauncher(Activity launcher) {
+        BackgroundDisconnect.checkDeadline();
         Map<Integer, Window> windows = windows(launcher);
         if (firstLaunchAfterForceStop(launcher)) {
             discard(windows, NONE);
@@ -154,6 +156,17 @@ public final class DesktopWorkspace {
     }
 
     public static boolean created(Activity activity, Bundle state) {
+        BackgroundDisconnect.checkDeadline();
+        if (activity.isFinishing()) return false;
+        if (state != null && state.getLong(SAVED_GENERATION) != BackgroundDisconnect.generation()) {
+            if (activity instanceof RemoteCanvasActivity) {
+                activity.finishAndRemoveTask();
+                activity.startActivity(new Intent(activity, ConnectionGridActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+                return false;
+            }
+            state = null;
+        }
         if (initialized) return checkCard(activity, state != null);
         boolean stopped = firstLaunchAfterForceStop(activity);
         boolean history = (activity.getIntent().getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0;
@@ -197,6 +210,7 @@ public final class DesktopWorkspace {
     }
 
     public static void save(Bundle state) {
+        state.putLong(SAVED_GENERATION, BackgroundDisconnect.generation());
         state.putIntegerArrayList(OPEN_TASKS, new ArrayList<>(desktops.keySet()));
         long[] profiles = new long[desktops.size()];
         int i = 0;
@@ -259,6 +273,34 @@ public final class DesktopWorkspace {
 
     static void backgrounded() {
         wasHidden = true;
+    }
+
+    static boolean hasDesktops() { return !desktops.isEmpty(); }
+
+    static void disconnectInBackground(Context context) {
+        Map<Integer, Window> tasks = windows(context);
+        desktops.clear();
+        pending.clear();
+        card = destination = replacing = NONE;
+        resumed = null;
+        resumeGeneration++;
+        wasHidden = false;
+        for (Map.Entry<Integer, Window> entry : tasks.entrySet()) {
+            if (!entry.getValue().desktop) {
+                useCard(tasks, entry.getKey());
+                break;
+            }
+        }
+        java.util.Set<Integer> closed = DesktopSessions.closeAllForTimeout();
+        for (Map.Entry<Integer, Window> entry : tasks.entrySet()) {
+            Window window = entry.getValue();
+            if (!window.desktop || closed.contains(entry.getKey())) continue;
+            try {
+                window.task.finishAndRemoveTask();
+            } catch (IllegalArgumentException ignored) {
+                // Android already removed this desktop.
+            }
+        }
     }
 
     private static void queueMissing(int preferred) {

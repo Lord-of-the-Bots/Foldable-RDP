@@ -327,6 +327,12 @@ abstract public class AbstractBitmapData implements AbstractDrawableData {
         Paint _whitePaint;
         Paint _blackPaint;
 
+        void drawSoftCursor(Canvas canvas) {
+            if (data.vncCanvas instanceof RemoteCanvas view && view.nativeTouchCursorHidden) return;
+            if (softCursor != null && !softCursor.isRecycled())
+                canvas.drawBitmap(softCursor, cursorRect.left, cursorRect.top, _defaultPaint);
+        }
+
         AbstractBitmapDrawable(AbstractBitmapData data) {
             this.data = data;
             cursorRect = new RectF();

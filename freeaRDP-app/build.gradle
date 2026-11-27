@@ -1,14 +1,24 @@
 apply plugin: 'com.android.application'
 
+def foldVersion = 'v6.5.0-fold.34'
+def foldBuildDate = java.time.LocalDate.now(java.time.ZoneOffset.UTC)
+
 android {
     ndkVersion '27.2.12479018'
     compileSdkVersion compileApi
 
     defaultConfig {
         applicationId 'com.foldable.rdp'
+        versionName foldVersion
+        versionCode 116533
+        resValue 'string', 'fold_build_label', "${foldVersion} · ${foldBuildDate}"
         targetSdkVersion targetApi
         minSdkVersion project.getProperties().get("SDK_VERSION")
         multiDexEnabled true
+    }
+
+    buildFeatures {
+        resValues = true
     }
 
     splits {

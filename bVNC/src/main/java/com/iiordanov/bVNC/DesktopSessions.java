@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import com.undatech.opaque.Connection;
 import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /** Accessed on the UI thread. Each desktop lives in a separate Android document task. */
 public final class DesktopSessions {
@@ -17,6 +20,16 @@ public final class DesktopSessions {
     }
 
     static void remove(RemoteCanvasActivity activity) { open.remove(activity); }
+
+    static Set<Integer> closeAllForTimeout() {
+        Set<Integer> closed = new HashSet<>();
+        for (RemoteCanvasActivity activity : new ArrayList<>(open.keySet())) {
+            open.remove(activity);
+            closed.add(activity.getTaskId());
+            if (!activity.isFinishing() && !activity.isDestroyed()) activity.finishAndRemoveTask();
+        }
+        return closed;
+    }
 
     static void activated(RemoteCanvasActivity activity) {
         if (open.containsKey(activity)) open.put(activity, open.remove(activity));

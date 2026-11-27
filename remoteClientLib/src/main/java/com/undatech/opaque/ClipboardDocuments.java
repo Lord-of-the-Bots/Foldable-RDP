@@ -2,10 +2,13 @@ package com.undatech.opaque;
 
 import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Binder;
 import android.os.CancellationSignal;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -43,10 +46,17 @@ public final class ClipboardDocuments extends DocumentsProvider {
     private static final AtomicLong lastFailure = new AtomicLong(-10000);
     private interface Failure { void report(IOException error); }
     static String authority(Context ctx) { return ctx.getPackageName() + ".clipboard.documents"; }
-    static void publish(Selection selection) { published.set(selection); }
-    static void discardStale() {
+    static synchronized void publish(Selection selection) {
+        Selection old = published.getAndSet(selection);
+        if (old != null && old != selection && old.grantContext != null) {
+            for (Uri tree : old.grantedTrees)
+                old.grantContext.revokeUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            old.grantedTrees.clear();
+        }
+    }
+    static synchronized void discardStale() {
         Selection s = published.get();
-        if (s != null && !s.bridge.hasDocuments(s.revision)) published.compareAndSet(s, null);
+        if (s != null && !s.bridge.hasDocuments(s.revision)) publish(null);
     }
 
     static final class Node {
@@ -71,6 +81,8 @@ public final class ClipboardDocuments extends DocumentsProvider {
         final long revision;
         final String token = UUID.randomUUID().toString();
         final ArrayList<Node> nodes = new ArrayList<>();
+        final LinkedHashSet<Uri> grantedTrees = new LinkedHashSet<>();
+        Context grantContext;
         final Node root;
         Selection(ClipboardBridge bridge, long revision, byte[] descriptors) throws IOException {
             this.bridge = bridge;
@@ -125,7 +137,8 @@ public final class ClipboardDocuments extends DocumentsProvider {
             for (Node n : top) types.add(n.mime());
             ClipData clip = null;
             for (Node n : top) {
-                Uri uri = DocumentsContract.buildDocumentUriUsingTree(tree, n.id);
+                Uri itemTree = n.directory ? DocumentsContract.buildTreeDocumentUri(authority(ctx), n.id) : tree;
+                Uri uri = DocumentsContract.buildDocumentUriUsingTree(itemTree, n.id);
                 ClipData.Item item = new ClipData.Item(uri);
                 if (clip == null) clip = new ClipData(label, types.toArray(new String[0]), item);
                 else clip.addItem(item);
@@ -163,9 +176,40 @@ public final class ClipboardDocuments extends DocumentsProvider {
         return s;
     }
     @Override public Cursor queryDocument(String documentId, String[] projection) throws FileNotFoundException {
+        Selection s = selection();
+        Node n = s.resolve(documentId);
+        if (n.directory) allowFolderTraversal(s, n);
         MatrixCursor result = new MatrixCursor(projection == null ? COLUMNS : projection);
-        row(result, selection().resolve(documentId));
+        row(result, n);
         return result;
+    }
+
+    private void allowFolderTraversal(Selection s, Node folder) {
+        Context ctx = getContext();
+        int uid = Binder.getCallingUid();
+        if (uid == android.os.Process.myUid() || (folder != s.root && folder.parent != s.root)) return;
+        Uri tree = DocumentsContract.buildTreeDocumentUri(authority(ctx), folder.id);
+        Uri document = DocumentsContract.buildDocumentUriUsingTree(tree, folder.id);
+        int read = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+        int pid = Binder.getCallingPid();
+        // ClipboardManager grants the item URI. Listing children uses a different URI.
+        if (ctx.checkUriPermission(document, pid, uid, read) != PackageManager.PERMISSION_GRANTED
+                || ctx.checkUriPermission(tree, pid, uid, read) == PackageManager.PERMISSION_GRANTED) return;
+        String recipient = getCallingPackage();
+        if (recipient == null) return;
+        synchronized (ClipboardDocuments.class) {
+            if (published.get() != s) return;
+            long identity = Binder.clearCallingIdentity();
+            try {
+                ctx.grantUriPermission(recipient, tree, read | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+                s.grantContext = ctx;
+                s.grantedTrees.add(tree);
+            } catch (SecurityException denied) {
+                android.util.Log.w("ClipboardDocuments", "Folder traversal grant was declined", denied);
+            } finally {
+                Binder.restoreCallingIdentity(identity);
+            }
+        }
     }
     @Override public Cursor queryChildDocuments(String parentId, String[] projection, String order) throws FileNotFoundException {
         Node parent = selection().resolve(parentId);
@@ -214,13 +258,17 @@ public final class ClipboardDocuments extends DocumentsProvider {
     @Override public ParcelFileDescriptor openDocument(String id, String mode, CancellationSignal signal) throws FileNotFoundException {
         if (!"r".equals(mode)) throw new FileNotFoundException("Read-only clipboard");
         if (signal != null) signal.throwIfCanceled();
+        Selection s = selection();
+        Node n = s.resolve(id);
+        // A directory can be enumerated, but a caller probing it as a stream gets no file.
+        if (n.directory) {
+            allowFolderTraversal(s, n);
+            throw new FileNotFoundException("Clipboard item is a directory");
+        }
         Failure failure = error -> {
             if (signal == null || !signal.isCanceled()) showReadFailure(error);
         };
         try {
-            Selection s = selection();
-            Node n = s.resolve(id);
-            if (n.directory) throw new FileNotFoundException("Clipboard item is a directory");
             ClipboardBridge.RemoteFile file = s.bridge.openRemoteFile(s.revision, n.index);
             file.observePhoneReads(n.name);
             try {

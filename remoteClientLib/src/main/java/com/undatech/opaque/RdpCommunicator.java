@@ -393,6 +393,11 @@ public class RdpCommunicator extends RfbConnectable implements RdpKeyboardMapper
         return session == null || !isActiveSession(session.getInstance()) ? -1 : RdpDisplayControl.status(session.getInstance());
     }
 
+    public synchronized boolean sendTouchContact(int action, int id, int x, int y) {
+        return session != null && isActiveSession(session.getInstance())
+                && RdpDisplayControl.touch(session.getInstance(), action, id, x, y);
+    }
+
     private void initSession(String rdpFileName, String username, String domain, String password) {
         bookmark.setRdpFileName(rdpFileName);
         bookmark.setUsername(username);

@@ -1,5 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
+  <string name="fold_updates">Check for updates on GitHub</string>
+  <string name="fold_build_label" translatable="false">@string/fold_app_name</string>
   <string name="fold_file_progress">File transfer notifications</string>
   <string name="fold_file_progress_question">Show file transfer progress?</string>
   <string name="fold_file_progress_explanation">When you copy a file between your phone and a computer, a quiet notification shows the file name, the computer and the progress. You can also copy files with notifications off.</string>
@@ -19,9 +21,14 @@
   <string name="fold_rdp_session">Remote desktop session</string>
   <item name="foldInputSettings" type="id" />
   <string name="fold_input_settings">Display and controls</string>
-  <string name="fold_screen_profile">Windows scale and key height are saved for screen %1$s, across rotation, split screen and full screen.</string>
+  <string name="fold_this_computer">This computer</string>
+  <string name="fold_all_computers">All computers</string>
+  <string name="fold_mode_touchpad">Touchpad</string>
+  <string name="fold_mode_touch">Direct touch</string>
+  <string name="fold_right_click_haptic">Right-click haptic feedback</string>
+  <string name="fold_screen_profile">Display %1$s</string>
   <string name="fold_windows_scale">Windows scale: %1$d%%</string>
-  <string name="fold_key_height">RDP keyboard key height · %1$d%%</string>
+  <string name="fold_key_height">Function key height · %1$d%%</string>
   <string name="fold_cursor_speed">Cursor speed: %1$d%% of normal</string>
   <string name="fold_input_settings_note">Changes are saved immediately. Key height is limited by the available space. Cursor speed applies in touchpad mode.</string>
   <string name="fold_app_name" translatable="false">Foldable RDP</string>
@@ -70,4 +77,14 @@
   <string name="fold_save_password">Save password</string>
   <string name="fold_address_required">Enter the computer address</string>
   <string name="fold_port_invalid">Enter a port from 1 to 65535</string>
+  <string name="fold_idle_title">Disconnect after the app is in the background</string>
+  <string name="fold_idle_mobile">Mobile data</string>
+  <string-array name="fold_idle_choices">
+    <item>No time limit</item><item>1 minute</item><item>5 minutes</item><item>15 minutes</item>
+    <item>30 minutes</item><item>1 hour</item><item>4 hours</item><item>24 hours</item>
+  </string-array>
+  <string-array name="fold_idle_minutes" translatable="false">
+    <item>0</item><item>1</item><item>5</item><item>15</item>
+    <item>30</item><item>60</item><item>240</item><item>1440</item>
+  </string-array>
 </resources>
